@@ -1,0 +1,16 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "version": "1.14.0",
+    "libraryName": "crudreact",
+    "libraryId": "5adefc4d-2503-459b-a20b-afe3d203a405",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "crudreact",
+    "solutionShortDescription": "crudreact description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}
