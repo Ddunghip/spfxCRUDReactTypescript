@@ -78,7 +78,7 @@ export default class CRUDReact extends React.Component<IHelloWorldProps, IStates
         var tabledata = <table className={styles.table}>
             <thead>
                 <tr>
-                    {/* <th>Title</th> */}
+                    <th>ID</th>
                     <th>Employee Name</th>
                     <th>Hire Date</th>
                     <th>Job Description</th>
@@ -89,7 +89,7 @@ export default class CRUDReact extends React.Component<IHelloWorldProps, IStates
                 {items && items.map((item, i) => {
                     return [
                         <tr key={i} onClick={() => this.findData(item.ID)}>
-                            {/* <td>{item.Title}</td> */}
+                            <td>{item.ID}</td>
                             <td>{item.EmployeeName}</td>
                             <td>{FormatDate(item.HireDate)}</td>
                             <td>{item.JobDescription}</td>
@@ -180,6 +180,8 @@ export default class CRUDReact extends React.Component<IHelloWorldProps, IStates
                 <div>
                     <form>
                         <div>
+                            <Label>ID</Label>
+                            <TextField value={this.state.ID} disabled />
                             <Label>Employee Name</Label>
                             <PeoplePicker
                                 context={this.props.context}
