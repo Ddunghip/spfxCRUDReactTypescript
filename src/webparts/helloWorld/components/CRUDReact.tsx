@@ -11,19 +11,43 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import '@progress/kendo-theme-default/dist/all.css';
+import {
+    Grid,
+    GridColumn as Column,
+    GridExpandChangeEvent,
+    GridDataStateChangeEvent,
+    GridDetailRow
+} from "@progress/kendo-react-grid";
+import { process, State } from "@progress/kendo-data-query";
+import DetailRow from './DetailRow';
+import { Employee } from './interfaces';
 
+
+
+
+const dataState: State = {
+    sort: [{ field: "code", dir: "asc" }],
+    take: 5,
+    skip: 0
+};
 
 export interface IStates {
     Items: any;
     ID: any;
+    id: any;
     EmployeeName: any;
     EmployeeNameId: any;
     HireDate: any;
     JobDescription: any;
     HTML: any;
-}
+    dataState: State;
+    expanded?: boolean;
 
+
+
+}
 export default class CRUDReact extends React.Component<IHelloWorldProps, IStates> {
+
     constructor(props) {
         super(props);
         this.state = {
@@ -31,9 +55,11 @@ export default class CRUDReact extends React.Component<IHelloWorldProps, IStates
             EmployeeName: "",
             EmployeeNameId: 0,
             ID: 0,
+            id: 0,
             HireDate: null,
             JobDescription: "",
-            HTML: []
+            HTML: [],
+            dataState: dataState,
 
         };
     }
@@ -50,14 +76,63 @@ export default class CRUDReact extends React.Component<IHelloWorldProps, IStates
         this.setState({ Items: items });
         let html = await this.getHTML(items);
         this.setState({ HTML: html });
-    }
-    public findData = (id): void => {
-        //this.fetchData();
-        console.log('>>>>', id);
 
-        var itemID = id;
+        this.GetItem(items)
+
+    }
+    public async GetItem(items) {
+        console.log('get items', items);
+        let result = []
+        if (items && items.length > 0) {
+            items.map(item => {
+                let obj = {
+                    id: "",
+                    Title: "",
+                    EmployeeName: "",
+                    JobDescription: ""
+                };
+                obj.id = item.ID;
+                obj.Title = item.Title;
+                obj.EmployeeName = item.EmployeeName;
+                obj.JobDescription = item.JobDescription;
+                result.push(obj);
+            })
+        }
+        console.log('check result', result);
+
+        // return result
+
+    }
+
+    // public findData = (id): void => {
+    //     //this.fetchData();
+    //     console.log('>>>>', id);
+
+    //     var itemID = id;
+    //     var allitems = this.state.Items;
+    //     var allitemsLength = allitems.length;
+    //     if (allitemsLength > 0) {
+    //         for (var i = 0; i < allitemsLength; i++) {
+    //             if (itemID == allitems[i].Id) {
+    //                 this.setState({
+    //                     ID: itemID,
+    //                     EmployeeName: allitems[i].EmployeeName,
+    //                     EmployeeNameId: allitems[i].EmployeeNameId,
+    //                     HireDate: new Date(allitems[i].HireDate),
+    //                     JobDescription: allitems[i].JobDescription
+    //                 });
+    //             }
+    //         }
+    //     }
+
+    // }
+
+    public findData = (item): void => {
+        var itemID = item.dataItem.Id;
+
         var allitems = this.state.Items;
         var allitemsLength = allitems.length;
+
         if (allitemsLength > 0) {
             for (var i = 0; i < allitemsLength; i++) {
                 if (itemID == allitems[i].Id) {
@@ -71,35 +146,80 @@ export default class CRUDReact extends React.Component<IHelloWorldProps, IStates
                 }
             }
         }
+    }
 
+    public expandChange = (event: GridExpandChangeEvent) => {
+        console.log(this.state.Items);
+
+        let newData: Array<IStates> = this.state.Items.map((item: IStates) => {
+            if (item.ID === event.dataItem.ID) {
+                item.expanded = !event.dataItem.expanded;
+                console.log(item, event.dataItem);
+
+            }
+            return item;
+        });
+        this.setState({
+            Items: newData
+        });
+        console.log('newData', newData);
     }
 
     public async getHTML(items) {
-        var tabledata = <table className={styles.table}>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Employee Name</th>
-                    <th>Hire Date</th>
-                    <th>Job Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                {console.log("check items", items)}
-                {items && items.map((item, i) => {
-                    return [
-                        <tr key={i} onClick={() => this.findData(item.ID)}>
-                            <td>{item.ID}</td>
-                            <td>{item.EmployeeName}</td>
-                            <td>{FormatDate(item.HireDate)}</td>
-                            <td>{item.JobDescription}</td>
-                        </tr>
-                    ];
-                })}
-            </tbody>
+        // var tabledata = <table className={styles.table}>
+        //     <thead>
+        //         <tr>
+        //             <th>ID</th>
+        //             <th>Employee Name</th>
+        //             <th>Hire Date</th>
+        //             <th>Job Description</th>
+        //         </tr>
+        //     </thead>
+        //     <tbody>
+        //         {console.log("check items", items)}
+        //         {items && items.map((item, i) => {
+        //             return [
+        //                 <tr key={i} onClick={() => this.findData(item.ID)}>
+        //                     <td>{item.ID}</td>
+        //                     <td>{item.EmployeeName}</td>
+        //                     <td>{FormatDate(item.HireDate)}</td>
+        //                     <td>{item.JobDescription}</td>
+        //                 </tr>
+        //             ];
+        //         })}
+        //     </tbody>
 
-        </table>;
-        return await tabledata;
+        // </table>;
+        // return await tabledata;
+
+        var tabledata =
+            <Grid
+                pageable={true}
+                sortable={true}
+                filterable={true}
+                data={process(this.state.Items, this.state.dataState)}
+                {...this.state.dataState}
+                detail={DetailRow}
+                // detail={DetailComponent}
+                style={{ height: "400px" }}
+                expandField="expanded"
+                onExpandChange={this.expandChange}
+                navigatable={true}
+                onRowClick={this.findData}
+                onDataStateChange={(e: GridDataStateChangeEvent) => {
+                    this.setState({ dataState: e.dataState });
+                    console.log(e);
+
+                }}
+            >
+                <Column field="ID" title="ID" width="80px" filterable={false} />
+                <Column field="EmployeeName" title="Name" width="250px" />
+                <Column field="HireDate" title="Hire Date" width="150px" />
+                <Column field="JobDescription" title="Job Description" width="150px" />
+
+
+            </Grid>;
+        return tabledata;
     }
     public _getPeoplePickerItems = async (items: any[]) => {
 
@@ -114,14 +234,7 @@ export default class CRUDReact extends React.Component<IHelloWorldProps, IStates
             this.setState({ EmployeeName: "" });
         }
     }
-    // public onchange(value, stateValue) {
-
-    //     let state = {};
-    //     state[stateValue] = value;
-    //     this.setState(state);
-    //     console.log(">>>check state onchange", value, state, stateValue);
-    // }
-
+    // onChange Job description
     public onChange(value) {
         this.setState({ JobDescription: value.target.value })
     }
@@ -144,11 +257,9 @@ export default class CRUDReact extends React.Component<IHelloWorldProps, IStates
     private async UpdateData() {
         let web = Web(this.props.webURL);
         await web.lists.getByTitle("EDetailsReact").items.getById(this.state.ID).update({
-
             EmployeeName: this.state.EmployeeName,
             HireDate: new Date(this.state.HireDate),
             JobDescription: this.state.JobDescription,
-
         }).then(i => {
             console.log(i);
         });
